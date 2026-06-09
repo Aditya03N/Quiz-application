@@ -31,24 +31,33 @@ const allowedOrigins = originsList
   .map((origin) => origin.trim().replace(/\/$/, ''))
   .filter(Boolean);
 
-app.use(cors({
-  origin(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, postman, or same-origin requests)
-    if (!origin) {
-      callback(null, true);
-      return;
-    }
+// Configure CORS dynamically.
+app.use(cors((req, callback) => {
+  const origin = req.header('Origin');
+  const corsOptions = {
+    credentials: true
+  };
 
+  if (!origin) {
+    // Allow requests with no origin (like mobile apps, curl, postman, or same-origin static assets)
+    corsOptions.origin = true;
+  } else {
     const sanitizedOrigin = origin.trim().replace(/\/$/, '');
+    const host = req.get('host');
+    
+    // Check if the request is same-origin (matches the backend host)
+    const isSameOrigin = sanitizedOrigin === `https://${host}` || sanitizedOrigin === `http://${host}`;
+    const isAllowed = allowedOrigins.includes(sanitizedOrigin);
 
-    if (allowedOrigins.includes(sanitizedOrigin)) {
-      callback(null, true);
+    if (isAllowed || isSameOrigin) {
+      corsOptions.origin = true;
     } else {
-      console.warn(`[CORS Blocked] Access denied for origin: ${origin}. Allowed origins:`, allowedOrigins);
-      callback(new Error(`Not allowed by CORS. Origin '${origin}' is not whitelisted.`));
+      console.warn(`[CORS Blocked] Origin: ${origin} is not allowed. Host: ${host}. Whitelisted:`, allowedOrigins);
+      corsOptions.origin = false; // Disables CORS headers for this request, browser will block it
     }
-  },
-  credentials: true
+  }
+
+  callback(null, corsOptions);
 }));
 app.use(express.json());
 
