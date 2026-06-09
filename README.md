@@ -34,65 +34,59 @@ npm run dev
 
 Recommended setup:
 
-- Frontend: Vercel
-- Backend: Render
+- Full app: Render Web Service
 - Database: MongoDB Atlas
 
 ### 1. MongoDB Atlas
 
 Create a MongoDB Atlas cluster and copy the connection string. Use it as `MONGODB_URI`.
 
-### 2. Deploy Backend on Render
+### 2. Deploy Full App on Render
 
-Create a new Render Web Service from this repository. If Render detects `render.yaml`, use it.
+Create a new Render Web Service from this repository. Render can use the included `render.yaml`.
 
 If setting it manually:
 
-- Root directory: `backend`
-- Build command: `npm install`
+- Root directory: leave blank / repository root
+- Build command: `npm run build`
 - Start command: `npm start`
 
-Backend environment variables:
+Render environment variables:
 
 ```env
 MONGODB_URI=your_mongodb_atlas_connection_string
 JWT_SECRET=use_a_long_random_secret
-FRONTEND_URL=https://your-frontend.vercel.app
+FRONTEND_URL=https://your-render-app.onrender.com
 NODE_ENV=production
 ```
 
-After deploy, copy the Render backend URL, for example:
+After deploy, open the Render URL, for example:
 
 ```text
-https://quiz-polling-backend.onrender.com
+https://quiz-polling-platform.onrender.com
 ```
 
-### 3. Deploy Frontend on Vercel
+### 3. Redeploy After URL Is Known
 
-Create a new Vercel project from this repository.
+After the first deploy, copy your real Render URL and update `FRONTEND_URL` to that same URL. Redeploy once.
 
-Set:
+No frontend env variables are required for Render-only deployment. In production the frontend uses:
 
-- Root directory: `frontend`
-- Framework preset: Vite
-- Build command: `npm run build`
-- Output directory: `dist`
-
-Frontend environment variables:
-
-```env
-VITE_API_URL=https://your-render-backend.onrender.com/api
-VITE_SOCKET_URL=https://your-render-backend.onrender.com
+```text
+/api for API requests
+the same Render origin for Socket.IO
 ```
 
-After Vercel deploys, copy the Vercel URL and put it into Render's `FRONTEND_URL`.
+### Render Build Flow
 
-### 4. Redeploy
+The root build command installs backend dependencies, installs frontend dependencies, and builds the frontend:
 
-Redeploy both services after environment variables are set:
+```bash
+npm run build
+```
 
-1. Redeploy backend on Render.
-2. Redeploy frontend on Vercel.
-3. Open the Vercel frontend URL.
+The root start command starts the backend. In production, Express serves `frontend/dist` and the API from the same Render service:
 
-Do not deploy the backend to Vercel serverless functions because this project uses Express and Socket.IO live connections.
+```bash
+npm start
+```
