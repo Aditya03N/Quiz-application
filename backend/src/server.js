@@ -20,8 +20,8 @@ function startServer(port, attempt = 0) {
   const server = http.createServer(app);
   initSocket(server);
 
-  server.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
+  server.listen(port, '0.0.0.0', () => {
+    console.log(`Server listening on port ${port} (all interfaces)`);
   });
 
   server.on('error', (error) => {

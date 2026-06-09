@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import socket from '../../services/socket.js';
 import { controlSession, fetchSession, fetchAnalytics } from '../../services/api.js';
 
@@ -23,6 +24,7 @@ export default function LiveSessionPage() {
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -111,6 +113,16 @@ export default function LiveSessionPage() {
   const timerPercent = Math.max(0, Math.min(100, (remainingSeconds / timerLimit) * 100));
   const currentQuestionResponses = analytics?.responses?.filter((response) => response.questionIndex === session.currentQuestionIndex) || [];
 
+  // Build the shareable join URL using the real browser origin (works on any device on the same network)
+  const joinUrl = `${window.location.origin}/join/${session.joinCode}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(joinUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f8fb] px-4 py-8">
       <div className="mx-auto max-w-6xl">
@@ -142,7 +154,48 @@ export default function LiveSessionPage() {
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold uppercase text-slate-500">Session Code</p>
-            <p className="mt-4 text-2xl font-bold text-slate-900">{session.joinCode}</p>
+            <p className="mt-4 text-2xl font-bold text-slate-900 tracking-widest">{session.joinCode}</p>
+          </div>
+        </div>
+
+        {/* ── Student Join Panel ─────────────────────────────────────── */}
+        <div className="mt-6 rounded-lg border border-brand-200 bg-white p-6 shadow-sm">
+          <p className="text-sm font-semibold uppercase text-brand-600">Share with Students</p>
+          <div className="mt-4 flex flex-col gap-6 md:flex-row md:items-center">
+            {/* QR Code */}
+            <div className="flex shrink-0 flex-col items-center gap-2">
+              <QRCodeSVG
+                value={joinUrl}
+                size={140}
+                bgColor="#ffffff"
+                fgColor="#1e293b"
+                level="M"
+              />
+              <p className="text-xs text-slate-500">Scan to join</p>
+            </div>
+
+            {/* Link + Copy */}
+            <div className="flex-1">
+              <p className="text-sm text-slate-600">
+                Students can open this link on <strong>any device on the same network</strong> to join the session:
+              </p>
+              <div className="mt-3 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                <span className="flex-1 break-all font-mono text-sm text-slate-800">{joinUrl}</span>
+                <button
+                  onClick={handleCopyLink}
+                  className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                    copied
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-brand-600 text-white hover:bg-brand-700'
+                  }`}
+                >
+                  {copied ? '✓ Copied!' : 'Copy Link'}
+                </button>
+              </div>
+              <p className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+                <strong>⚠ Local network only:</strong> Make sure your computer and students' devices are on the <strong>same WiFi network</strong>. For access over the internet, deploy the app to a hosting service.
+              </p>
+            </div>
           </div>
         </div>
 

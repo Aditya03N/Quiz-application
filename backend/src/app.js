@@ -49,7 +49,11 @@ app.use(cors((req, callback) => {
     const isSameOrigin = sanitizedOrigin === `https://${host}` || sanitizedOrigin === `http://${host}`;
     const isAllowed = allowedOrigins.includes(sanitizedOrigin);
 
-    if (isAllowed || isSameOrigin) {
+    // Allow any request coming from a private LAN IP (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    // so students on the same WiFi network can access the app.
+    const isLocalNetwork = /^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(sanitizedOrigin);
+
+    if (isAllowed || isSameOrigin || isLocalNetwork) {
       corsOptions.origin = true;
     } else {
       console.warn(`[CORS Blocked] Origin: ${origin} is not allowed. Host: ${host}. Whitelisted:`, allowedOrigins);

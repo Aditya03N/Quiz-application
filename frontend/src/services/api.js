@@ -1,7 +1,18 @@
 import axios from 'axios';
 
+// In production the API is served from the same origin (/api).
+// In development, use the same host the browser is on (so it works from any device on the LAN),
+// but fall back to VITE_API_URL or localhost if explicitly set.
+function getBaseURL() {
+  if (import.meta.env.PROD) return '/api';
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  // Use the same hostname as the browser so it works from other devices (e.g. student phones)
+  const host = window.location.hostname;
+  return `http://${host}:5000/api`;
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.PROD ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api'),
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json'
   }
