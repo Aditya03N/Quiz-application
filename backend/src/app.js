@@ -11,19 +11,42 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
 
-const allowedOrigins = (process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5173')
-  .split(',')
-  .map((origin) => origin.trim())
+// Define allowed origins for CORS.
+// We collect all potential origins, sanitize them by removing trailing slashes, and merge them.
+const originsList = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000'
+];
+
+if (process.env.FRONTEND_URL) {
+  originsList.push(...process.env.FRONTEND_URL.split(','));
+}
+
+if (process.env.RENDER_EXTERNAL_URL) {
+  originsList.push(process.env.RENDER_EXTERNAL_URL);
+}
+
+const allowedOrigins = originsList
+  .map((origin) => origin.trim().replace(/\/$/, ''))
   .filter(Boolean);
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (like mobile apps, curl, postman, or same-origin requests)
+    if (!origin) {
       callback(null, true);
       return;
     }
 
-    callback(new Error('Not allowed by CORS'));
+    const sanitizedOrigin = origin.trim().replace(/\/$/, '');
+
+    if (allowedOrigins.includes(sanitizedOrigin)) {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS Blocked] Access denied for origin: ${origin}. Allowed origins:`, allowedOrigins);
+      callback(new Error(`Not allowed by CORS. Origin '${origin}' is not whitelisted.`));
+    }
   },
   credentials: true
 }));

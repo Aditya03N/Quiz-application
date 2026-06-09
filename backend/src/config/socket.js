@@ -7,9 +7,22 @@ import Response from '../models/Response.js';
 let io;
 
 export function initSocket(server) {
-  const allowedOrigins = (process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5173')
-    .split(',')
-    .map((origin) => origin.trim())
+  const originsList = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000'
+  ];
+
+  if (process.env.FRONTEND_URL) {
+    originsList.push(...process.env.FRONTEND_URL.split(','));
+  }
+
+  if (process.env.RENDER_EXTERNAL_URL) {
+    originsList.push(process.env.RENDER_EXTERNAL_URL);
+  }
+
+  const allowedOrigins = originsList
+    .map((origin) => origin.trim().replace(/\/$/, ''))
     .filter(Boolean);
 
   io = new Server(server, {
