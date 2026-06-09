@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import socket from '../../services/socket.js';
 import { fetchSessionByCode, joinSession, submitAnswer } from '../../services/api.js';
@@ -16,14 +16,20 @@ export default function JoinPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const refreshSession = async () => {
+  const refreshSession = useCallback(async () => {
     try {
       const response = await fetchSessionByCode(joinCode);
       setSessionData(response.data);
     } catch (_) {
       // ignore refresh errors
     }
-  };
+  }, [joinCode]);
+
+  // Keep a stable ref so socket listeners always call the latest refreshSession
+  const refreshRef = useRef(refreshSession);
+  useEffect(() => {
+    refreshRef.current = refreshSession;
+  }, [refreshSession]);
 
   useEffect(() => {
     const loadSession = async () => {
@@ -38,19 +44,22 @@ export default function JoinPage() {
     loadSession();
   }, [joinCode]);
 
-  useEffect(() => {
-    if (!sessionData?.session?._id) return;
-    const sessionId = sessionData.session._id;
-    socket.emit('subscribe-session', { sessionId });
+  // Track session ID separately so this effect doesn't re-run on every data change
+  const currentSessionId = sessionData?.session?._id;
 
-    socket.on('session:update', refreshSession);
-    socket.on('session:control', refreshSession);
+  useEffect(() => {
+    if (!currentSessionId) return;
+    socket.emit('subscribe-session', { sessionId: currentSessionId });
+
+    const handler = () => refreshRef.current();
+    socket.on('session:update', handler);
+    socket.on('session:control', handler);
 
     return () => {
-      socket.off('session:update');
-      socket.off('session:control');
+      socket.off('session:update', handler);
+      socket.off('session:control', handler);
     };
-  }, [sessionData, joinCode]);
+  }, [currentSessionId]);
 
   const handleJoin = async () => {
     if (!name.trim()) {
@@ -115,9 +124,9 @@ export default function JoinPage() {
 
   useEffect(() => {
     if (!participantId || sessionData?.session?.status === 'live') return;
-    const interval = setInterval(refreshSession, 5000);
+    const interval = setInterval(() => refreshRef.current(), 3000);
     return () => clearInterval(interval);
-  }, [participantId, sessionData?.session?.status, joinCode]);
+  }, [participantId, sessionData?.session?.status]);
 
   if (loading) {
     return <div className="min-h-screen bg-slate-100 px-4 py-8">Loading session...</div>;
@@ -176,12 +185,17 @@ export default function JoinPage() {
             <div className="rounded-3xl bg-slate-50 p-6">
               <h2 className="text-xl font-semibold text-slate-900">{sessionData.quiz?.title}</h2>
               <p className="mt-2 text-slate-600">{sessionData.quiz?.description}</p>
-              <p className="mt-4 text-sm text-slate-500">Waiting for the session to start if it is not live yet.</p>
+              {sessionData.session?.status === 'live' && (
+                <p className="mt-4 text-sm font-medium text-emerald-600">✓ Session is live — answer the question below!</p>
+              )}
             </div>
 
             {sessionData.session?.status !== 'live' ? (
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-slate-700">
-                The session is currently <span className="font-semibold">{sessionData.session?.status}</span>. Please wait for your teacher to start the quiz.
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center">
+                <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-blue-600"></div>
+                <p className="text-lg font-semibold text-slate-800">You're in! Waiting for the teacher to start…</p>
+                <p className="mt-2 text-sm text-slate-500">Session status: <span className="font-semibold capitalize">{sessionData.session?.status}</span></p>
+                <p className="mt-1 text-xs text-slate-400">This page will update automatically when the quiz begins.</p>
               </div>
             ) : currentQuestion ? (
               <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">

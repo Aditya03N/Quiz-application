@@ -106,8 +106,8 @@ export async function publishQuiz(req, res, next) {
 export async function getDashboard(req, res, next) {
   try {
     const teacherId = req.user.id;
-    const quizzes = await Quiz.find({ teacherId });
-    const sessions = await Session.find({ teacherId });
+    const quizzes = await Quiz.find({ teacherId }).sort({ createdAt: -1 });
+    const sessions = await Session.find({ teacherId }).sort({ createdAt: -1 });
     const participants = await Participant.find({ teacherId });
 
     const totalPolls = quizzes.filter((quiz) => quiz.mode === 'poll').length;
@@ -115,11 +115,29 @@ export async function getDashboard(req, res, next) {
     const totalParticipants = participants.length;
     const activeSessions = sessions.filter((session) => session.status === 'live').length;
     const completedSessions = sessions.filter((session) => session.status === 'finished').length;
-    const recent = quizzes.slice(0, 5).map((quiz) => ({
-      id: quiz._id,
-      title: quiz.title,
-      mode: quiz.mode,
-      published: quiz.published
+
+    const recent = await Promise.all(quizzes.slice(0, 5).map(async (quiz) => {
+      let sessionId = null;
+      if (quiz.published) {
+        const session = await Session.findOne({ quizId: quiz._id });
+        sessionId = session?._id || null;
+      }
+      return {
+        id: quiz._id,
+        title: quiz.title,
+        mode: quiz.mode,
+        published: quiz.published,
+        sessionId
+      };
+    }));
+
+    const recentSessions = sessions.slice(0, 5).map((session) => ({
+      id: session._id,
+      title: session.title,
+      status: session.status,
+      joinCode: session.joinCode,
+      participantsCount: session.participantsCount,
+      createdAt: session.createdAt
     }));
 
     res.json({
@@ -128,7 +146,8 @@ export async function getDashboard(req, res, next) {
       totalParticipants,
       activeSessions,
       completedSessions,
-      recent
+      recent,
+      recentSessions
     });
   } catch (error) {
     next(error);

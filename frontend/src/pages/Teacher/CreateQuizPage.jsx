@@ -25,6 +25,7 @@ export default function CreateQuizPage() {
   const [status, setStatus] = useState(null);
   const [joinUrl, setJoinUrl] = useState('');
   const [qrCode, setQrCode] = useState('');
+  const [publishedSessionId, setPublishedSessionId] = useState('');
   const [saving, setSaving] = useState(false);
 
   const updateQuestion = (index, change) => {
@@ -98,6 +99,7 @@ export default function CreateQuizPage() {
       const quizId = response.data.quiz?._id;
       if (publish) {
         const publishResponse = await publishQuiz(quizId);
+        setPublishedSessionId(publishResponse.data.session?._id || '');
         setJoinUrl(publishResponse.data.session?.joinUrl || '');
         setQrCode(publishResponse.data.session?.qrDataUrl || '');
         setStatus('Quiz published. Share the join link with your class!');
@@ -312,6 +314,16 @@ export default function CreateQuizPage() {
                   </div>
                 )}
               </div>
+              {publishedSessionId && (
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => navigate(`/teacher/live/${publishedSessionId}`)}
+                    className="rounded-2xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-700"
+                  >
+                    Go to Live Session Control
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

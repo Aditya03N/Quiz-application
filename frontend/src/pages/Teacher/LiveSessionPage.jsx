@@ -120,30 +120,60 @@ export default function LiveSessionPage() {
               <p className="mt-1 text-sm text-slate-500">Question {session.currentQuestionIndex + 1} of {session.quiz.questions.length}</p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => handleControl('start')}
-                className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700"
-              >
-                Start
-              </button>
-              <button
-                onClick={() => handleControl('pause')}
-                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
-              >
-                Pause
-              </button>
-              <button
-                onClick={() => handleControl('resume')}
-                className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
-              >
-                Resume
-              </button>
-              <button
-                onClick={() => handleControl('end')}
-                className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-700"
-              >
-                End Session
-              </button>
+              {session.status === 'waiting' && (
+                <button
+                  onClick={() => handleControl('start')}
+                  className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700"
+                >
+                  Start Session
+                </button>
+              )}
+              {session.status === 'live' && (
+                <>
+                  <button
+                    onClick={() => handleControl('pause')}
+                    className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                  >
+                    Pause
+                  </button>
+                  <button
+                    onClick={() => handleControl('prev')}
+                    disabled={session.currentQuestionIndex === 0}
+                    className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    Previous Question
+                  </button>
+                  <button
+                    onClick={() => handleControl('next')}
+                    disabled={session.currentQuestionIndex === session.quiz.questions.length - 1}
+                    className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                  >
+                    Next Question
+                  </button>
+                  <button
+                    onClick={() => handleControl('end')}
+                    className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-700"
+                  >
+                    End Session
+                  </button>
+                </>
+              )}
+              {session.status === 'paused' && (
+                <>
+                  <button
+                    onClick={() => handleControl('resume')}
+                    className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+                  >
+                    Resume
+                  </button>
+                  <button
+                    onClick={() => handleControl('end')}
+                    className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-700"
+                  >
+                    End Session
+                  </button>
+                </>
+              )}
             </div>
           </div>
 

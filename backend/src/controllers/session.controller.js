@@ -92,7 +92,8 @@ export async function submitAnswer(req, res, next) {
     }
 
     const isCorrect = question.type !== 'short_answer' && question.type !== 'poll'
-      ? selectedOptionIds?.every((id) => question.correctOptionIds.includes(id))
+      ? (selectedOptionIds?.length === question.correctOptionIds.length &&
+         selectedOptionIds?.every((id) => question.correctOptionIds.includes(id)))
       : false;
     const points = isCorrect ? question.points : 0;
 

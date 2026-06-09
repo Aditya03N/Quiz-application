@@ -92,14 +92,14 @@ export default function DashboardPage() {
               <p className="mt-3 text-xl font-semibold text-slate-900">Build a new quiz or poll</p>
             </button>
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => document.getElementById('recent-sessions')?.scrollIntoView({ behavior: 'smooth' })}
               className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:border-brand-400"
             >
               <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Live Sessions</p>
               <p className="mt-3 text-xl font-semibold text-slate-900">Monitor current sessions</p>
             </button>
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => document.getElementById('recent-sessions')?.scrollIntoView({ behavior: 'smooth' })}
               className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:border-brand-400"
             >
               <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Analytics</p>
@@ -120,6 +120,22 @@ export default function DashboardPage() {
                         <p className="font-semibold text-slate-900">{quiz.title}</p>
                         <p className="text-sm text-slate-500">{quiz.mode} • {quiz.published ? 'Published' : 'Draft'}</p>
                       </div>
+                      {quiz.published && quiz.sessionId && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => navigate(`/teacher/live/${quiz.sessionId}`)}
+                            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          >
+                            Control
+                          </button>
+                          <button
+                            onClick={() => navigate(`/analytics/${quiz.sessionId}`)}
+                            className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800"
+                          >
+                            Analytics
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -129,21 +145,42 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white p-8 shadow-lg">
-            <h2 className="text-xl font-semibold text-slate-900">Session Summary</h2>
+          <div id="recent-sessions" className="rounded-3xl bg-white p-8 shadow-lg">
+            <h2 className="text-xl font-semibold text-slate-900">Recent Sessions</h2>
             <div className="mt-6 space-y-4">
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <p className="font-semibold text-slate-900">Completed Sessions</p>
-                <p className="text-sm text-slate-500">{data.completedSessions || 0}</p>
-              </div>
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <p className="font-semibold text-slate-900">Total Polls</p>
-                <p className="text-sm text-slate-500">{data.totalPolls || 0}</p>
-              </div>
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <p className="font-semibold text-slate-900">Total Quizzes</p>
-                <p className="text-sm text-slate-500">{data.totalQuizzes || 0}</p>
-              </div>
+              {data.recentSessions?.length ? (
+                data.recentSessions.map((session) => (
+                  <div key={session.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="font-semibold text-slate-900">{session.title}</p>
+                        <p className="text-sm text-slate-500">
+                          Code: {session.joinCode} • Status: <span className="capitalize font-semibold">{session.status}</span>
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        {session.status !== 'finished' ? (
+                          <button
+                            onClick={() => navigate(`/teacher/live/${session.id}`)}
+                            className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
+                          >
+                            Control
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => navigate(`/analytics/${session.id}`)}
+                            className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800"
+                          >
+                            Analytics
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">No sessions run yet. Publish a quiz to start a session.</p>
+              )}
             </div>
           </div>
         </div>
