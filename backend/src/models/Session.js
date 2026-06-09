@@ -13,6 +13,8 @@ const sessionSchema = new mongoose.Schema({
   participantsCount: { type: Number, default: 0 },
   responsesCount: { type: Number, default: 0 },
   startedAt: { type: Date },
+  currentQuestionStartedAt: { type: Date },
+  currentQuestionEndsAt: { type: Date },
   endedAt: { type: Date }
 }, { timestamps: true });
 

@@ -67,4 +67,8 @@ export function fetchAnalytics(sessionId) {
   return api.get(`/sessions/${sessionId}/analytics`);
 }
 
+export function fetchParticipantResults(sessionId, participantId) {
+  return api.get(`/sessions/${sessionId}/participants/${participantId}/results`);
+}
+
 export default api;

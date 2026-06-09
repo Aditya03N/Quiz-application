@@ -8,6 +8,8 @@ const responseSchema = new mongoose.Schema({
   answerText: { type: String, default: '' },
   isCorrect: { type: Boolean, default: false },
   points: { type: Number, default: 0 },
+  timeTakenSeconds: { type: Number, default: 0 },
+  autoSubmitted: { type: Boolean, default: false },
   submittedAt: { type: Date, default: Date.now }
 });
 
