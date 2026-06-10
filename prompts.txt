@@ -1,0 +1,66 @@
+# AI Usage Declaration
+
+This project was primarily designed, implemented, debugged, and deployed by the developer.
+
+AI tools were used as development assistants for specific tasks such as:
+
+## Prompt 1: UI Design Ideas
+
+Generate modern dashboard layout ideas for a real-time polling platform with a mobile-first design approach.
+
+Purpose:
+
+* Brainstorm UI layouts
+* Improve user experience
+* Explore color and component arrangements
+
+## Prompt 2: Socket.IO Debugging
+
+Help identify why real-time vote updates were not reaching connected clients.
+
+Purpose:
+
+* Debug WebSocket communication
+* Verify event emission and listeners
+* Improve real-time reliability
+
+## Prompt 3: MongoDB Schema Review
+
+Review poll and vote schemas and suggest improvements for scalability and data consistency.
+
+Purpose:
+
+* Validate database structure
+* Improve query efficiency
+* Support analytics features
+
+## Prompt 4: Render Deployment Troubleshooting
+
+Help resolve deployment issues related to environment variables, build commands, and production configuration.
+
+Purpose:
+
+* Fix deployment errors
+* Verify Render configuration
+* Ensure successful production deployment
+
+## Prompt 5: Documentation Assistance
+
+Help structure project documentation including README and architecture explanations.
+
+Purpose:
+
+* Improve documentation quality
+* Organize technical information
+
+## AI Tools Used
+
+* ChatGPT for debugging
+* Claude for code writing
+* Kombai AI for design
+* deepseek for reasoning
+* microsoft copilot for suggestions
+
+
+AI assistance was limited to brainstorming, debugging, documentation, and code review. Final implementation decisions, application architecture, feature integration, testing, and deployment were completed by the developer.
+
