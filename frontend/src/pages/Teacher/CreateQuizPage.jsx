@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createQuiz, publishQuiz } from '../../services/api.js';
+import TeacherHeader from '../../components/common/TeacherHeader.jsx';
 
 const defaultQuestion = () => ({
   text: '',
@@ -23,9 +24,6 @@ export default function CreateQuizPage() {
     questions: [defaultQuestion()]
   });
   const [status, setStatus] = useState(null);
-  const [joinUrl, setJoinUrl] = useState('');
-  const [qrCode, setQrCode] = useState('');
-  const [publishedSessionId, setPublishedSessionId] = useState('');
   const [saving, setSaving] = useState(false);
 
   const updateQuestion = (index, change) => {
@@ -99,14 +97,14 @@ export default function CreateQuizPage() {
       const quizId = response.data.quiz?._id;
       if (publish) {
         const publishResponse = await publishQuiz(quizId);
-        setPublishedSessionId(publishResponse.data.session?._id || '');
-        setJoinUrl(publishResponse.data.session?.joinUrl || '');
-        setQrCode(publishResponse.data.session?.qrDataUrl || '');
-        setStatus('Quiz published. Share the join link with your class!');
+        const sessionId = publishResponse.data.session?._id;
+        if (sessionId) {
+          navigate(`/teacher/live/${sessionId}`);
+        } else {
+          setStatus('Quiz published but session ID not found.');
+        }
       } else {
         setStatus('Draft saved successfully. You can publish it when ready.');
-      }
-      if (!publish) {
         navigate('/dashboard');
       }
     } catch (error) {
@@ -117,21 +115,13 @@ export default function CreateQuizPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-8">
-      <div className="mx-auto max-w-6xl rounded-3xl bg-white p-8 shadow-lg">
+    <div className="min-h-screen bg-slate-100 pb-12">
+      <TeacherHeader />
+      <div className="mx-auto max-w-6xl rounded-3xl bg-white p-8 shadow-lg mt-8">
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-slate-900">Create Quiz or Poll</h1>
             <p className="mt-2 text-slate-600">Build a new activity, save drafts, and publish live sessions instantly.</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              className="rounded-2xl border border-slate-300 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              onClick={() => navigate('/dashboard')}
-              type="button"
-            >
-              Back to Dashboard
-            </button>
           </div>
         </div>
 
@@ -293,37 +283,6 @@ export default function CreateQuizPage() {
           {status && (
             <div className="rounded-3xl border border-brand-100 bg-brand-50 p-4 text-sm text-slate-900">
               {status}
-            </div>
-          )}
-
-          {joinUrl && (
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-              <h2 className="text-xl font-semibold text-slate-900">Share this Live Session</h2>
-              <p className="mt-2 text-slate-600">Students can join with this link or QR code.</p>
-              <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center">
-                <div className="rounded-3xl bg-white p-4 shadow-sm">
-                  <p className="text-sm text-slate-500">Join URL</p>
-                  <a className="mt-2 block text-brand-600 underline" href={joinUrl} target="_blank" rel="noreferrer">
-                    {joinUrl}
-                  </a>
-                </div>
-                {qrCode && (
-                  <div className="rounded-3xl bg-white p-4 shadow-sm">
-                    <p className="text-sm text-slate-500">QR Code</p>
-                    <img src={qrCode} alt="Session QR code" className="mt-2 h-40 w-40 object-contain" />
-                  </div>
-                )}
-              </div>
-              {publishedSessionId && (
-                <div className="mt-6 flex justify-end">
-                  <button
-                    onClick={() => navigate(`/teacher/live/${publishedSessionId}`)}
-                    className="rounded-2xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-700"
-                  >
-                    Go to Live Session Control
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>

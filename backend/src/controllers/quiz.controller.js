@@ -73,7 +73,11 @@ export async function publishQuiz(req, res, next) {
     }
 
     const joinCode = createJoinCode();
-    const joinUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/join/${joinCode}`;
+    
+    // Determine the frontend base URL, falling back to Render's external URL or localhost
+    const frontendBaseUrl = (process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5173').replace(/\/$/, '');
+    const joinUrl = `${frontendBaseUrl}/join/${joinCode}`;
+    
     const qrDataUrl = await generateQrDataUrl(joinUrl);
 
     const sessionStatus = quiz.mode === 'poll' ? 'live' : 'waiting';

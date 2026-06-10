@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchAnalytics } from '../../services/api.js';
+import TeacherHeader from '../../components/common/TeacherHeader.jsx';
 
 function formatSeconds(value = 0) {
   const seconds = Math.max(0, Math.ceil(value));
@@ -45,25 +46,36 @@ export default function AnalyticsPage() {
   }, [analytics]);
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-100 px-4 py-8">Loading analytics...</div>;
+    return (
+      <div className="min-h-screen bg-slate-100">
+        <TeacherHeader />
+        <div className="flex items-center justify-center p-12">
+          <p className="text-slate-500 animate-pulse">Loading analytics...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-100 px-4 py-8">
-        <div className="mx-auto max-w-4xl rounded-lg bg-white p-8 shadow-sm">
-          <p className="text-rose-600">{error}</p>
-          <button onClick={() => navigate('/dashboard')} className="mt-6 rounded-lg bg-brand-600 px-5 py-3 text-white">
-            Back to Dashboard
-          </button>
+      <div className="min-h-screen bg-slate-100">
+        <TeacherHeader />
+        <div className="px-4 py-8">
+          <div className="mx-auto max-w-4xl rounded-lg bg-white p-8 shadow-sm">
+            <p className="text-rose-600">{error}</p>
+            <button onClick={() => navigate('/dashboard')} className="mt-6 rounded-lg bg-brand-600 px-5 py-3 text-white">
+              Back to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f8fb] px-4 py-8 text-slate-950">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-[#f7f8fb] pb-12 text-slate-950">
+      <TeacherHeader />
+      <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase text-brand-600">Teacher report</p>

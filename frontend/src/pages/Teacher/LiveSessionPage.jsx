@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import socket from '../../services/socket.js';
 import { controlSession, fetchSession, fetchAnalytics } from '../../services/api.js';
+import TeacherHeader from '../../components/common/TeacherHeader.jsx';
 
 function formatSeconds(value = 0) {
   const seconds = Math.max(0, Math.ceil(value));
@@ -89,20 +90,30 @@ export default function LiveSessionPage() {
   }, [session]);
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-100 px-4 py-8">Loading session...</div>;
+    return (
+      <div className="min-h-screen bg-slate-100">
+        <TeacherHeader />
+        <div className="flex items-center justify-center p-12">
+          <p className="text-slate-500 animate-pulse">Loading live session details...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-100 px-4 py-8">
-        <div className="mx-auto max-w-4xl rounded-3xl bg-white p-8 shadow-lg">
-          <p className="text-rose-600">{error}</p>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="mt-6 rounded-2xl bg-brand-600 px-5 py-3 text-white"
-          >
-            Back to Dashboard
-          </button>
+      <div className="min-h-screen bg-slate-100">
+        <TeacherHeader />
+        <div className="px-4 py-8">
+          <div className="mx-auto max-w-4xl rounded-3xl bg-white p-8 shadow-lg">
+            <p className="text-rose-600">{error}</p>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="mt-6 rounded-2xl bg-brand-600 px-5 py-3 text-white"
+            >
+              Back to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -124,8 +135,9 @@ export default function LiveSessionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f8fb] px-4 py-8">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-[#f7f8fb] pb-12">
+      <TeacherHeader />
+      <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Live Session</h1>
