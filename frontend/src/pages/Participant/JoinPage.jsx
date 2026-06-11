@@ -23,6 +23,7 @@ export default function JoinPage() {
   const [participantId, setParticipantId] = useState('');
   const [selectedOptionIds, setSelectedOptionIds] = useState([]);
   const [answerText, setAnswerText] = useState('');
+  // stores { [questionIndex]: { isCorrect, selectedOptionIds } } after submission
   const [submittedQuestions, setSubmittedQuestions] = useState({});
   const [results, setResults] = useState(null);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
@@ -53,6 +54,8 @@ export default function JoinPage() {
   const currentQuestion = quiz?.questions?.[currentQuestionIndex] || null;
   const totalQuestions = quiz?.questions?.length || 0;
   const hasSubmittedCurrent = Boolean(submittedQuestions[currentQuestionIndex]);
+  const submittedResult = submittedQuestions[currentQuestionIndex] || null;
+  const correctOptionIds = currentQuestion?.correctOptionIds || [];
   const progressPercent = totalQuestions ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0;
   const limitSeconds = currentQuestion?.timeLimit || 30;
   const timerPercent = Math.max(0, Math.min(100, (remainingSeconds / limitSeconds) * 100));
@@ -82,7 +85,13 @@ export default function JoinPage() {
         autoSubmitted
       });
 
-      setSubmittedQuestions((current) => ({ ...current, [currentQuestionIndex]: true }));
+      setSubmittedQuestions((current) => ({
+        ...current,
+        [currentQuestionIndex]: {
+          isCorrect: response.data.isCorrect,
+          selectedOptionIds: [...selectedOptionIds]
+        }
+      }));
       setError(autoSubmitted ? 'Time ended. Your answer was submitted automatically.' : '');
 
       if (response.data.completed || currentQuestionIndex >= totalQuestions - 1) {
@@ -335,8 +344,9 @@ export default function JoinPage() {
               </div>
 
               {hasSubmittedCurrent && (
-                <div className="mt-5 rounded-lg bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
-                  Answer submitted. Wait for the next question.
+                <div className={`mt-5 rounded-lg p-4 text-sm font-semibold ${submittedResult?.isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                  {submittedResult?.isCorrect ? '✓ Correct! Well done.' : '✗ Incorrect. See the correct answer highlighted below.'}
+                  <p className="mt-1 font-normal text-xs opacity-75">Wait for the next question.</p>
                 </div>
               )}
             </aside>
@@ -357,18 +367,45 @@ export default function JoinPage() {
                 <div className="mt-6 grid gap-3">
                   {currentQuestion.options?.map((option, index) => {
                     const selected = selectedOptionIds.includes(option.id);
+                    const isCorrectOption = correctOptionIds.includes(option.id);
+                    const wasSelectedByStudent = submittedResult?.selectedOptionIds?.includes(option.id);
+
+                    let buttonClass = 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white';
+                    let circleClass = 'bg-white text-slate-600 ring-1 ring-slate-200';
+
+                    if (hasSubmittedCurrent) {
+                      if (isCorrectOption) {
+                        buttonClass = 'border-emerald-500 bg-emerald-50';
+                        circleClass = 'bg-emerald-500 text-white';
+                      } else if (wasSelectedByStudent && !isCorrectOption) {
+                        buttonClass = 'border-rose-400 bg-rose-50';
+                        circleClass = 'bg-rose-400 text-white';
+                      } else {
+                        buttonClass = 'border-slate-200 bg-slate-50 opacity-50';
+                      }
+                    } else if (selected) {
+                      buttonClass = 'border-brand-600 bg-brand-50 shadow-sm';
+                      circleClass = 'bg-brand-600 text-white';
+                    }
+
                     return (
                       <button
                         key={option.id}
                         type="button"
                         disabled={hasSubmittedCurrent}
                         onClick={() => toggleOption(option.id)}
-                        className={`flex items-center gap-4 rounded-lg border p-4 text-left transition disabled:cursor-not-allowed ${selected ? 'border-brand-600 bg-brand-50 shadow-sm' : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'}`}
+                        className={`flex items-center gap-4 rounded-lg border p-4 text-left transition disabled:cursor-not-allowed ${buttonClass}`}
                       >
-                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${selected ? 'bg-brand-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}>
+                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${circleClass}`}>
                           {String.fromCharCode(65 + index)}
                         </span>
                         <span className="font-semibold text-slate-800">{option.text || `Option ${index + 1}`}</span>
+                        {hasSubmittedCurrent && isCorrectOption && (
+                          <span className="ml-auto text-xs font-bold text-emerald-600">✓ Correct</span>
+                        )}
+                        {hasSubmittedCurrent && wasSelectedByStudent && !isCorrectOption && (
+                          <span className="ml-auto text-xs font-bold text-rose-600">✗ Your answer</span>
+                        )}
                       </button>
                     );
                   })}

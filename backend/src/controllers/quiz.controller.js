@@ -80,9 +80,6 @@ export async function publishQuiz(req, res, next) {
     
     const qrDataUrl = await generateQrDataUrl(joinUrl);
 
-    const sessionStatus = quiz.mode === 'poll' ? 'live' : 'waiting';
-    const startedAt = sessionStatus === 'live' ? new Date() : undefined;
-
     const session = await Session.create({
       quizId: quiz._id,
       teacherId: quiz.teacherId,
@@ -91,9 +88,8 @@ export async function publishQuiz(req, res, next) {
       joinCode,
       joinUrl,
       qrDataUrl,
-      status: sessionStatus,
-      currentQuestionIndex: 0,
-      startedAt
+      status: 'waiting',
+      currentQuestionIndex: 0
     });
 
     quiz.published = true;
